@@ -6,9 +6,8 @@
 \section{Testing newcommandoptionals}
 
 % Test 1: 1 Optional, 1 Mandatory
-% Syntax: \newcommandoptionals{\name}[N][M][Def1]...{Body}
-% Syntax: \newcommandoptionals{\name}[Mand][Defaults]{Body}
-\newcommandoptionals{\mycmdA}[1]{DefaultA}{Arg1: #1, Arg2: #2}
+% Syntax: \newcommandoptionals{\name}[N_OPT][N_MAND][Def1]...{Body}
+\newcommandoptionals{\mycmdA}[1][1][DefaultA]{Arg1: #1, Arg2: #2}
 
 
 Test A1 (Default): \mycmdA{Main} \par
@@ -20,8 +19,7 @@ Expected: Arg1: Custom, Arg2: Main
 \vspace{1em}
 
 % Test 2: 2 Optionals, 1 Mandatory
-% Test 2: 2 Optionals, 1 Mandatory
-\newcommandoptionals{\mycmdB}[1]{DefOne, DefTwo}{Opt1: #1, Opt2: #2, Mand: #3}
+\newcommandoptionals{\mycmdB}[2][1][DefOne][DefTwo]{Opt1: #1, Opt2: #2, Mand: #3}
 
 
 Test B1 (All Defaults): \mycmdB{MainBody} \par
@@ -36,8 +34,7 @@ Expected: Opt1: Cust1, Opt2: Cust2, Mand: MainBody
 \vspace{1em}
 
 % Test 3: 0 Optionals, 2 Mandatory
-% Test 3: 0 Optionals, 2 Mandatory
-\newcommandoptionals{\mycmdC}[2]{}{M1: #1, M2: #2}
+\newcommandoptionals{\mycmdC}[0][2]{M1: #1, M2: #2}
 
 
 Test C1: \mycmdC{Apple}{Banana} \par
@@ -45,11 +42,9 @@ Expected: M1: Apple, M2: Banana
 
 \vspace{1em}
 
-% Test 4: Max limit check (Optional+Mandatory <= 8)
-% This should compile fine: 4 Opt + 4 Mand = 8
 % Test 4: Max limit check (Optional+Mandatory <= 9)
 % This should compile fine: 4 Opt + 4 Mand = 8
-\newcommandoptionals{\mycmdD}[4]{A, B, C, D}{#1-#2-#3-#4 | #5-#6-#7-#8}
+\newcommandoptionals{\mycmdD}[4][4][A][B][C][D]{#1-#2-#3-#4 | #5-#6-#7-#8}
 
 
 % Test D: \mycmdD{E}{F}{G}{H} \par

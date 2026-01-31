@@ -6,9 +6,8 @@
 \section{Testing Zero Arguments}
 
 % Case 1: 0 Optional, 0 Mandatory explicitly
-% Case 1: 0 Optional, 0 Mandatory explicitly
-% Syntax: \newcommandoptionals{\cmd}[Mand]{Defaults}{Body}
-\newcommandoptionals{\mycmdZero}[0]{}{ZeroArgs}
+% Syntax: \newcommandoptionals{\cmd}[Opt][Mand]{Body}
+\newcommandoptionals{\mycmdZero}[0][0]{ZeroArgs}
 
 Case 1: \mycmdZero \par
 Expected: ZeroArgs
@@ -16,9 +15,8 @@ Expected: ZeroArgs
 \vspace{1em}
 
 % Case 2: Implicit defaults (should be 0 and 0)
-% Case 2: Implicit defaults (should be 0 and 0)
-% We MUST provide the empty defaults list now.
-\newcommandoptionals{\mycmdDefault}{}{DefaultArgs}
+% Syntax: \newcommandoptionals{\cmd}{Body} -> Defaults to 0,0
+\newcommandoptionals{\mycmdDefault}{DefaultArgs}
 
 Case 2: \mycmdDefault \par
 Expected: DefaultArgs
@@ -26,8 +24,7 @@ Expected: DefaultArgs
 \vspace{1em}
 
 % Case 3: 2 Optional, 0 Mandatory
-% Case 3: 2 Optional, 0 Mandatory (Implied by defaults list)
-\newcommandoptionals{\mycmdOptOnly}{A, B}{Opt: #1, #2}
+\newcommandoptionals{\mycmdOptOnly}[2][0][A][B]{Opt: #1, #2}
 
 Case 3: \mycmdOptOnly \par
 Expected: Opt: A, B
@@ -35,8 +32,7 @@ Expected: Opt: A, B
 \vspace{1em}
 
 % Case 4: 0 Optional, 2 Mandatory
-% Case 4: 0 Optional (Empty defaults), 2 Mandatory
-\newcommandoptionals{\mycmdMandOnly}[2]{}{Mand: #1, #2}
+\newcommandoptionals{\mycmdMandOnly}[0][2]{Mand: #1, #2}
 
 Case 4: \mycmdMandOnly{X}{Y} \par
 Expected: Mand: X, Y

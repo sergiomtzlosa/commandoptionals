@@ -3,7 +3,8 @@
 
 \begin{document}
 % Define a command with 1 optional argument, and provide an EMPTY default
-\newcommandoptionals{\emptydef}{{}}{Val: '#1'}
+% Syntax: \newcommandoptionals{cmd}[OptCount][MandCount][Default]
+\newcommandoptionals{\emptydef}[1][0][]{Val: '#1'}
 
 \emptydef % Should print "Val: ''"
 \emptydef[Custom] % Should print "Val: 'Custom'"

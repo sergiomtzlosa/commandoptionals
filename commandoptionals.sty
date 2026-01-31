@@ -1,5 +1,5 @@
 \NeedsTeXFormat{LaTeX2e}
-\ProvidesPackage{commandoptionals}[2026/01/31 v1.1 Command with variable optionals]
+\ProvidesPackage{commandoptionals}[2026/01/31 v1.2 Command with variable optionals]
 
 \RequirePackage{xparse}
 
@@ -11,63 +11,81 @@
 \int_new:N \l__cmdopt_total_count_int
 \tl_new:N \l__cmdopt_arg_spec_tl
 \tl_new:N \l__cmdopt_cmd_name_tl
-\clist_new:N \l__cmdopt_defaults_clist
 \seq_new:N \l__cmdopt_defaults_seq
 
-% Error messages
+% Error message
 \msg_new:nnn { commandoptionals } { too-many-args }
-  {
-    The~sum~of~optional~(#1)~and~mandatory~(#2)~arguments~must~be~maximum~9.
-  }
+{
+	The~sum~of~optional~(#1)~and~mandatory~(#2)~arguments~must~be~maximum~9.
+}
 
-% Main command: \newcommandoptionals{\cmd}[MandatoryCount]{DefaultsList}{Body}
-% #1: Command name (\cmd)
-% #2: Number of mandatory arguments (Optional, default 0)
-% #3: Comma separated list of default values for optional arguments
-% #4: Body
-\NewDocumentCommand{\newcommandoptionals}{ m O{0} m +m }
-  {
-    \tl_set:Nn \l__cmdopt_cmd_name_tl { #1 }
-    \int_set:Nn \l__cmdopt_mand_count_int { #2 }
-    \clist_set:Nn \l__cmdopt_defaults_clist { #3 }
-    \seq_set_from_clist:NN \l__cmdopt_defaults_seq \l__cmdopt_defaults_clist
-    
-    % Count optional arguments from the number of defaults provided
-    \int_set:Nn \l__cmdopt_opt_count_int { \seq_count:N \l__cmdopt_defaults_seq }
-    
-    % Check constraints
-    \int_set:Nn \l__cmdopt_total_count_int { \l__cmdopt_opt_count_int + \l__cmdopt_mand_count_int }
-    
-    \int_compare:nNnTF { \l__cmdopt_total_count_int } > { 9 }
-      {
-        \msg_error:nnxx { commandoptionals } { too-many-args } 
-          { \int_use:N \l__cmdopt_opt_count_int } 
-          { \int_use:N \l__cmdopt_mand_count_int }
-      }
-      {
-         \__cmdopt_define_command:n { #4 }
-      }
-  }
+% Main command: \newcommandoptionals{\cmd}[N][M]
+\NewDocumentCommand{\newcommandoptionals}{ m O{0} O{0} }
+{
+	\tl_set:Nn \l__cmdopt_cmd_name_tl { #1 }
+	\int_set:Nn \l__cmdopt_opt_count_int { #2 }
+	\int_set:Nn \l__cmdopt_mand_count_int { #3 }
+	
+	% Check constraints
+	\int_set:Nn \l__cmdopt_total_count_int { \l__cmdopt_opt_count_int + \l__cmdopt_mand_count_int }
+	\int_compare:nNnTF { \l__cmdopt_total_count_int } > { 9 }
+	{
+		\msg_error:nnxx { commandoptionals } { too-many-args } 
+		{ \int_use:N \l__cmdopt_opt_count_int } 
+		{ \int_use:N \l__cmdopt_mand_count_int }
+	}
+	{
+		% Clear previous defaults
+		\seq_clear:N \l__cmdopt_defaults_seq
+		% Start scanning for default values
+		\__cmdopt_scan_defaults:n { \l__cmdopt_opt_count_int }
+	}
+}
+
+\cs_new_protected:Npn \__cmdopt_scan_defaults:n #1
+{
+	\int_compare:nNnTF { #1 } > { 0 }
+	{
+		% Expect a default value in []
+		\__cmdopt_grab_default:w { #1 }
+	}
+	{
+		% Finished defaults, read body
+		\__cmdopt_read_body:w
+	}
+}
+
+\NewDocumentCommand{ \__cmdopt_grab_default:w } { m r[] }
+{
+	\seq_put_right:Nn \l__cmdopt_defaults_seq { #2 }
+	\__cmdopt_scan_defaults:n { \int_eval:n { #1 - 1 } }
+}
+
+% Read body: { ... }
+\NewDocumentCommand{ \__cmdopt_read_body:w } { +m }
+{
+	\__cmdopt_define_command:n { #1 }
+}
 
 \cs_new_protected:Npn \__cmdopt_define_command:n #1
-  {
-    \tl_clear:N \l__cmdopt_arg_spec_tl
-    
-    % Append Optional specs O{default}
-    \seq_map_inline:Nn \l__cmdopt_defaults_seq
-      {
-        \tl_put_right:Nn \l__cmdopt_arg_spec_tl { O{ ##1 } }
-      }
-      
-    % Append Mandatory specs m
-    \int_step_inline:nn { \l__cmdopt_mand_count_int }
-      {
-        \tl_put_right:Nn \l__cmdopt_arg_spec_tl { m }
-      }
-      
-    % Define the command
-    % parsing the tl variables to get the content
-    \use:x { \DeclareDocumentCommand \exp_not:V \l__cmdopt_cmd_name_tl { \l__cmdopt_arg_spec_tl } } { #1 }
-  }
+{
+	\tl_clear:N \l__cmdopt_arg_spec_tl
+	
+	% Append Optional specs O{default}
+	\seq_map_inline:Nn \l__cmdopt_defaults_seq
+	{
+		\tl_put_right:Nn \l__cmdopt_arg_spec_tl { O{ ##1 } }
+	}
+	
+	% Append Mandatory specs m
+	\int_step_inline:nn { \l__cmdopt_mand_count_int }
+	{
+		\tl_put_right:Nn \l__cmdopt_arg_spec_tl { m }
+	}
+	
+	% Define the command
+	% parsing the tl variables to get the content
+	\use:x { \DeclareDocumentCommand \exp_not:V \l__cmdopt_cmd_name_tl { \l__cmdopt_arg_spec_tl } } { #1 }
+}
 
 \ExplSyntaxOff
