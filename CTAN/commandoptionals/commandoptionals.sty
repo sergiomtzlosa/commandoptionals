@@ -42,6 +42,17 @@
       }
   }
 
+% (Removed incorrect previous definition of \__cmdopt_scan_defaults:n)
+  
+% We can't easily put \NewDocumentCommand inside cs_new.
+% Let's use a scratch scanner.
+% Better approach: use a loop *after* identifying we need defaults.
+% But we simply need to eat N [...] blocks.
+% The standard \NewDocumentCommand won't work recursively well for variable depth without defining temp cmds.
+% Let's match the exact syntax requested: \newcommandoptionals{\cmd}[N][M][D1]...[DN]{...}
+
+% Revised Strategy: Use a loop that calls a command which grabs one [ ] argument.
+
 \cs_new_protected:Npn \__cmdopt_scan_defaults:n #1
   {
     \int_compare:nNnTF { #1 } > { 0 }
