@@ -55,7 +55,7 @@
       }
   }
 
-\NewDocumentCommand{ \__cmdopt_grab_default:w } { m O{} }
+\NewDocumentCommand{ \__cmdopt_grab_default:w } { m r[] }
   {
     \seq_put_right:Nn \l__cmdopt_defaults_seq { #2 }
     \__cmdopt_scan_defaults:n { \int_eval:n { #1 - 1 } }
