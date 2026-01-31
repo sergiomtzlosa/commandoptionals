@@ -1,0 +1,34 @@
+\documentclass{article}
+\usepackage{commandoptionals}
+
+\begin{document}
+
+\section{Testing Zero Arguments}
+
+% Case 1: 0 Optional, 0 Mandatory explicitly
+\newcommandoptionals{\mycmdZero}[0][0]{ZeroArgs}
+Case 1: \mycmdZero \par
+Expected: ZeroArgs
+
+\vspace{1em}
+
+% Case 2: Implicit defaults (should be 0 and 0)
+\newcommandoptionals{\mycmdDefault}{DefaultArgs}
+Case 2: \mycmdDefault \par
+Expected: DefaultArgs
+
+\vspace{1em}
+
+% Case 3: 2 Optional, 0 Mandatory
+\newcommandoptionals{\mycmdOptOnly}[2][0][A][B]{Opt: #1, #2}
+Case 3: \mycmdOptOnly \par
+Expected: Opt: A, B
+
+\vspace{1em}
+
+% Case 4: 0 Optional, 2 Mandatory
+\newcommandoptionals{\mycmdMandOnly}[0][2]{Mand: #1, #2}
+Case 4: \mycmdMandOnly{X}{Y} \par
+Expected: Mand: X, Y
+
+\end{document}

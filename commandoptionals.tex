@@ -1,0 +1,62 @@
+\documentclass{ltxdoc}
+\usepackage[T1]{fontenc}
+\usepackage{lmodern}
+\usepackage{commandoptionals}
+\usepackage{listings}
+
+\title{The \texttt{commandoptionals} package}
+\author{Sergio Martinez-Losa}
+\date{\today}
+
+\begin{document}
+
+\maketitle
+
+\begin{abstract}
+The \texttt{commandoptionals} package extends standard LaTeX command definitions. It allows users to define commands with a flexible number of optional and mandatory arguments, checking that the total number does not exceed 9.
+\end{abstract}
+
+\section{Introduction}
+Standard LaTeX \texttt{\textbackslash newcommand} allows for at most one optional argument. The \texttt{xparse} package provides powerful tools for defining complex command interfaces. This package, built on top of \texttt{xparse}, provides a simplified interface \texttt{\textbackslash newcommandoptionals} to define commands with multiple optional arguments and their default values.
+
+\section{Usage}
+
+\subsection{Loading the Package}
+\begin{verbatim}
+\usepackage{commandoptionals}
+\end{verbatim}
+
+\subsection{Defining Commands}
+The main command is \texttt{\textbackslash newcommandoptionals}.
+
+\begin{verbatim}
+\newcommandoptionals{\<cmd>}[<num_opt>][<num_mand>][<def_1>]...[<def_n>]{<body>}
+\end{verbatim}
+
+\begin{itemize}
+    \item \texttt{<cmd>}: The command to be defined.
+    \item \texttt{<num\_opt>}: Number of optional arguments (default 0).
+    \item \texttt{<num\_mand>}: Number of mandatory arguments (default 0).
+    \item \texttt{<def\_i>}: Default value for the $i$-th optional argument. You must provide as many default values as optional arguments specified.
+    \item \texttt{<body>}: The definition of the command. Arguments are accessed via \texttt{\#1}, \texttt{\#2}, etc. Optional arguments come first, followed by mandatory arguments.
+\end{itemize}
+
+Constraint: $\texttt{<num\_opt>} + \texttt{<num\_mand>} \le 9$.
+
+It is possible to have zero optional arguments ($\texttt{<num\_opt>} = 0$) or zero mandatory arguments ($\texttt{<num\_mand>} = 0$), provided the total sum is at least 0 (an empty command is possible, though perhaps not very useful).
+
+\section{Examples}
+
+\subsection{Two Optional, One Mandatory}
+
+\begin{verbatim}
+\newcommandoptionals{\mycmd}[2][1][DefaultA][DefaultB]{%
+  Opt1: #1, Opt2: #2, Mand: #3%
+}
+
+\mycmd{Hello}          % -> Opt1: DefaultA, Opt2: DefaultB, Mand: Hello
+\mycmd[UserA]{Hello}   % -> Opt1: UserA,    Opt2: DefaultB, Mand: Hello
+\mycmd[UserA][UserB]{Hello} % -> Opt1: UserA, Opt2: UserB, Mand: Hello
+\end{verbatim}
+
+\end{document}
