@@ -1,0 +1,171 @@
+% \iffalse meta-comment
+%
+% Copyright (C) 2026 by Sid <sid@example.com>
+%
+% This file may be distributed and/or modified under the
+% conditions of the LaTeX Project Public License, either
+% version 1.3 of this license or (at your option) any later
+% version. The latest version of this license is in:
+%
+%    http://www.latex-project.org/lppl.txt
+%
+% and version 1.3 or later is part of all distributions of
+% LaTeX version 2005/12/01 or later.
+%
+% \fi
+%
+% \iffalse
+%<*driver>
+\ProvidesFile{commandoptionals.dtx}
+[2026/01/31 v1.2 Command with variable optionals]
+\documentclass{ltxdoc}
+\usepackage[utf8]{inputenc}
+\usepackage[T1]{fontenc}
+\usepackage{commandoptionals}
+\EnableCrossrefs
+\CodelineIndex
+\RecordChanges
+\begin{document}
+  \DocInput{commandoptionals.dtx}
+\end{document}
+%</driver>
+% \fi
+%
+% \changes{v1.0}{2026/01/31}{Initial version}
+% \changes{v1.1}{2026/01/31}{Added support for zero optionals}
+% \changes{v1.2}{2026/01/31}{Added error checking for max args}
+%
+% \GetFileInfo{commandoptionals.dtx}
+%
+% \title{The \textsf{commandoptionals} package\thanks{This document
+%   corresponds to \textsf{commandoptionals}~\fileversion, dated \filedate.}}
+% \author{Sid \\ \texttt{sid@example.com}}
+%
+% \maketitle
+%
+% \section{Introduction}
+%
+% This package provides a command \texttt{\textbackslash newcommandoptionals} that allows defining new commands with a variable number of optional and mandatory arguments.
+%
+% \section{Usage}
+%
+% \texttt{\textbackslash newcommandoptionals}\marg{cmd}\oarg{num\_opt}\oarg{num\_mand}
+%
+% Defines a new command \meta{cmd}.
+% \begin{itemize}
+%   \item \meta{num\_opt}: Number of optional arguments (default 0).
+%   \item \meta{num\_mand}: Number of mandatory arguments (default 0).
+% \end{itemize}
+% The sum of optional and mandatory arguments must not exceed 9.
+%
+% The syntax for the defined command will be:
+% \meta{cmd}\oarg{opt1}\dots\oarg{optN}\marg{mand1}\dots\marg{mandM}
+%
+% \StopEventually{\PrintIndex}
+%
+% \section{Implementation}
+%
+% \iffalse
+%<*package>
+% \fi
+%
+%    \begin{macrocode}
+\NeedsTeXFormat{LaTeX2e}
+\ProvidesPackage{commandoptionals}[2026/01/31 v1.2 Command with variable optionals]
+
+\RequirePackage{xparse}
+
+\ExplSyntaxOn
+
+% Variables to store counts and temporary lists
+\int_new:N \l__cmdopt_opt_count_int
+\int_new:N \l__cmdopt_mand_count_int
+\int_new:N \l__cmdopt_total_count_int
+\tl_new:N \l__cmdopt_arg_spec_tl
+\tl_new:N \l__cmdopt_cmd_name_tl
+\seq_new:N \l__cmdopt_defaults_seq
+
+% Error message
+\msg_new:nnn { commandoptionals } { too-many-args }
+{
+	The~sum~of~optional~(#1)~and~mandatory~(#2)~arguments~must~be~maximum~9.
+}
+
+% Main command: \newcommandoptionals{\cmd}[N][M]
+\NewDocumentCommand{\newcommandoptionals}{ m O{0} O{0} }
+{
+	\tl_set:Nn \l__cmdopt_cmd_name_tl { #1 }
+	\int_set:Nn \l__cmdopt_opt_count_int { #2 }
+	\int_set:Nn \l__cmdopt_mand_count_int { #3 }
+	
+	% Check constraints
+	\int_set:Nn \l__cmdopt_total_count_int { \l__cmdopt_opt_count_int + \l__cmdopt_mand_count_int }
+	\int_compare:nNnTF { \l__cmdopt_total_count_int } > { 9 }
+	{
+		\msg_error:nnxx { commandoptionals } { too-many-args } 
+		{ \int_use:N \l__cmdopt_opt_count_int } 
+		{ \int_use:N \l__cmdopt_mand_count_int }
+	}
+	{
+		% Clear previous defaults
+		\seq_clear:N \l__cmdopt_defaults_seq
+		% Start scanning for default values
+		\__cmdopt_scan_defaults:n { \l__cmdopt_opt_count_int }
+	}
+}
+
+\cs_new_protected:Npn \__cmdopt_scan_defaults:n #1
+{
+	\int_compare:nNnTF { #1 } > { 0 }
+	{
+		% Expect a default value in []
+		\__cmdopt_grab_default:w { #1 }
+	}
+	{
+		% Finished defaults, read body
+		\__cmdopt_read_body:w
+	}
+}
+
+\NewDocumentCommand{ \__cmdopt_grab_default:w } { m r[] }
+{
+	\seq_put_right:Nn \l__cmdopt_defaults_seq { #2 }
+	\__cmdopt_scan_defaults:n { \int_eval:n { #1 - 1 } }
+}
+
+% Read body: { ... }
+\NewDocumentCommand{ \__cmdopt_read_body:w } { +m }
+{
+	\__cmdopt_define_command:n { #1 }
+}
+
+\cs_new_protected:Npn \__cmdopt_define_command:n #1
+{
+	\tl_clear:N \l__cmdopt_arg_spec_tl
+	
+	% Append Optional specs O{default}
+	\seq_map_inline:Nn \l__cmdopt_defaults_seq
+	{
+		\tl_put_right:Nn \l__cmdopt_arg_spec_tl { O{ ##1 } }
+	}
+	
+	% Append Mandatory specs m
+	\int_step_inline:nn { \l__cmdopt_mand_count_int }
+	{
+		\tl_put_right:Nn \l__cmdopt_arg_spec_tl { m }
+	}
+	
+	% Define the command
+	% parsing the tl variables to get the content
+	\use:x { \DeclareDocumentCommand \exp_not:V \l__cmdopt_cmd_name_tl { \l__cmdopt_arg_spec_tl } } { #1 }
+}
+
+\ExplSyntaxOff
+%    \end{macrocode}
+%
+% \iffalse
+%</package>
+% \fi
+%
+% \Finale
+\endinput
