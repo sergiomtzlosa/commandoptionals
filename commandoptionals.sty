@@ -86,12 +86,12 @@
 	
 	\seq_map_inline:Nn \l__cmdopt_defaults_seq
 	{
-	\tl_put_right:Nn \l__cmdopt_arg_spec_tl { O{ ##1 } }
+		\tl_put_right:Nn \l__cmdopt_arg_spec_tl { O{ ##1 } }
 	}
 	
 	\int_step_inline:nn { \l__cmdopt_mand_count_int }
 	{
-	\tl_put_right:Nn \l__cmdopt_arg_spec_tl { m }
+		\tl_put_right:Nn \l__cmdopt_arg_spec_tl { m }
 	}
 	
 	\use:x { \DeclareDocumentCommand \exp_not:V \l__cmdopt_cmd_name_tl { \l__cmdopt_arg_spec_tl } } { #1 }
