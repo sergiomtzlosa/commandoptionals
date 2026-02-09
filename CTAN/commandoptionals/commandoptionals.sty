@@ -36,65 +36,65 @@
 
 \msg_new:nnn { commandoptionals } { too-many-args }
 {
-	The~sum~of~optional~(#1)~and~mandatory~(#2)~arguments~must~be~maximum~9.
+The~sum~of~optional~(#1)~and~mandatory~(#2)~arguments~must~be~maximum~9.
 }
 
 \NewDocumentCommand{\newcommandoptionals}{ m O{0} O{0} }
 {
-	\tl_set:Nn \l__cmdopt_cmd_name_tl { #1 }
-	\int_set:Nn \l__cmdopt_opt_count_int { #2 }
-	\int_set:Nn \l__cmdopt_mand_count_int { #3 }
-	
-	\int_set:Nn \l__cmdopt_total_count_int { \l__cmdopt_opt_count_int + \l__cmdopt_mand_count_int }
-	\int_compare:nNnTF { \l__cmdopt_total_count_int } > { 9 }
-	{
-		\msg_error:nnxx { commandoptionals } { too-many-args }
-		{ \int_use:N \l__cmdopt_opt_count_int }
-		{ \int_use:N \l__cmdopt_mand_count_int }
-	}
-	{
-		\seq_clear:N \l__cmdopt_defaults_seq
-		\__cmdopt_scan_defaults:n { \l__cmdopt_opt_count_int }
-	}
+\tl_set:Nn \l__cmdopt_cmd_name_tl { #1 }
+\int_set:Nn \l__cmdopt_opt_count_int { #2 }
+\int_set:Nn \l__cmdopt_mand_count_int { #3 }
+
+\int_set:Nn \l__cmdopt_total_count_int { \l__cmdopt_opt_count_int + \l__cmdopt_mand_count_int }
+\int_compare:nNnTF { \l__cmdopt_total_count_int } > { 9 }
+{
+\msg_error:nnxx { commandoptionals } { too-many-args }
+{ \int_use:N \l__cmdopt_opt_count_int }
+{ \int_use:N \l__cmdopt_mand_count_int }
+}
+{
+\seq_clear:N \l__cmdopt_defaults_seq
+\__cmdopt_scan_defaults:n { \l__cmdopt_opt_count_int }
+}
 }
 
 \cs_new_protected:Npn \__cmdopt_scan_defaults:n #1
 {
-	\int_compare:nNnTF { #1 } > { 0 }
-	{
-		\__cmdopt_grab_default:w { #1 }
-	}
-	{
-		\__cmdopt_read_body:w
-	}
+\int_compare:nNnTF { #1 } > { 0 }
+{
+\__cmdopt_grab_default:w { #1 }
+}
+{
+\__cmdopt_read_body:w
+}
 }
 
 \NewDocumentCommand{ \__cmdopt_grab_default:w } { m r[] }
 {
-	\seq_put_right:Nn \l__cmdopt_defaults_seq { #2 }
-	\__cmdopt_scan_defaults:n { \int_eval:n { #1 - 1 } }
+\seq_put_right:Nn \l__cmdopt_defaults_seq { #2 }
+\__cmdopt_scan_defaults:n { \int_eval:n { #1 - 1 } }
 }
 
 \NewDocumentCommand{ \__cmdopt_read_body:w } { +m }
 {
-	\__cmdopt_define_command:n { #1 }
+\__cmdopt_define_command:n { #1 }
 }
 
 \cs_new_protected:Npn \__cmdopt_define_command:n #1
 {
-	\tl_clear:N \l__cmdopt_arg_spec_tl
-	
-	\seq_map_inline:Nn \l__cmdopt_defaults_seq
-	{
-		\tl_put_right:Nn \l__cmdopt_arg_spec_tl { O{ ##1 } }
-	}
-	
-	\int_step_inline:nn { \l__cmdopt_mand_count_int }
-	{
-		\tl_put_right:Nn \l__cmdopt_arg_spec_tl { m }
-	}
-	
-	\use:x { \DeclareDocumentCommand \exp_not:V \l__cmdopt_cmd_name_tl { \l__cmdopt_arg_spec_tl } } { #1 }
+\tl_clear:N \l__cmdopt_arg_spec_tl
+
+\seq_map_inline:Nn \l__cmdopt_defaults_seq
+{
+\tl_put_right:Nn \l__cmdopt_arg_spec_tl { O{ ##1 } }
+}
+
+\int_step_inline:nn { \l__cmdopt_mand_count_int }
+{
+\tl_put_right:Nn \l__cmdopt_arg_spec_tl { m }
+}
+
+\use:x { \DeclareDocumentCommand \exp_not:V \l__cmdopt_cmd_name_tl { \l__cmdopt_arg_spec_tl } } { #1 }
 }
 
 \ExplSyntaxOff

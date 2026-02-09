@@ -37,6 +37,18 @@ Example:
 \newcommandoptionals{\mycmd}[2][1][Def1][Def2]{Arg1: #1, Arg2: #2, Mand: #3}
 ```
 
+## Star Command Variants
+
+You can define starred command variants by appending `*` to the command name. Starred commands allow paragraph breaks (\par) in their arguments, similar to LaTeX's `\long` commands.
+
+```latex
+\newcommandoptionals{\mycmd*}[2][1][Def1][Def2]{Arg1: #1, Arg2: #2, Mand: #3}
+
+\mycmd*{content with \par inside}
+```
+
+The star variant creates both `\mycmd` and `\mycmd*` where the starred version supports paragraphs in arguments.
+
 ## License
 This work may be distributed and/or modified under the
 conditions of the LaTeX Project Public License, either version 1.3

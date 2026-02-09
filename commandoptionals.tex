@@ -59,4 +59,20 @@ It is possible to have zero optional arguments ($\texttt{<num\_opt>} = 0$) or ze
 \mycmd[UserA][UserB]{Hello} % -> Opt1: UserA, Opt2: UserB, Mand: Hello
 \end{verbatim}
 
+\section{Starred Command Variants}
+
+You can define starred command variants by appending \texttt{*} to the command name when defining it. Starred commands allow paragraph breaks (\texttt{\textbackslash par}) in their arguments, which is equivalent to using the \texttt{\textbackslash long} prefix in standard LaTeX.
+
+\begin{verbatim}
+\newcommandoptionals{\mycmd*}[1][0]{%
+  Argument: #1%
+}
+
+\mycmd*{Some content with
+
+paragraph breaks}
+\end{verbatim}
+
+When defining a starred variant using \texttt{\textbackslash newcommandoptionals{\textbackslash mycmd*}...}, both the regular (\texttt{\textbackslash mycmd}) and starred (\texttt{\textbackslash mycmd*}) versions are created. The starred version accepts paragraph breaks in its arguments, while the regular version does not.
+
 \end{document}

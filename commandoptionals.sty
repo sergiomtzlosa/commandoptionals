@@ -2,27 +2,38 @@
 \ProvidesPackage{commandoptionals}[2026/01/31 v1.2 Command with variable optionals]
 
 \RequirePackage{xparse}
+\RequirePackage{suffix}
 
 \ExplSyntaxOn
 
+% Variables to store counts and temporary lists
 \int_new:N \l__cmdopt_opt_count_int
 \int_new:N \l__cmdopt_mand_count_int
 \int_new:N \l__cmdopt_total_count_int
 \tl_new:N \l__cmdopt_arg_spec_tl
 \tl_new:N \l__cmdopt_cmd_name_tl
+\tl_new:N \l__cmdopt_base_name_tl
 \seq_new:N \l__cmdopt_defaults_seq
+\bool_new:N \l__cmdopt_long_bool
+\bool_new:N \l__cmdopt_has_star_bool
 
+% Error message
 \msg_new:nnn { commandoptionals } { too-many-args }
 {
 	The~sum~of~optional~(#1)~and~mandatory~(#2)~arguments~must~be~maximum~9.
 }
 
+% Main command: \newcommandoptionals{\cmd}[N][M]
 \NewDocumentCommand{\newcommandoptionals}{ m O{0} O{0} }
 {
+	% Default: no \long flag
+	\bool_set_false:N \l__cmdopt_long_bool
+	% Setup command name and argument counts
 	\tl_set:Nn \l__cmdopt_cmd_name_tl { #1 }
 	\int_set:Nn \l__cmdopt_opt_count_int { #2 }
 	\int_set:Nn \l__cmdopt_mand_count_int { #3 }
 	
+	% Check constraints
 	\int_set:Nn \l__cmdopt_total_count_int { \l__cmdopt_opt_count_int + \l__cmdopt_mand_count_int }
 	\int_compare:nNnTF { \l__cmdopt_total_count_int } > { 9 }
 	{
@@ -31,7 +42,9 @@
 		{ \int_use:N \l__cmdopt_mand_count_int }
 	}
 	{
+		% Clear previous defaults
 		\seq_clear:N \l__cmdopt_defaults_seq
+		% Start scanning for default values
 		\__cmdopt_scan_defaults:n { \l__cmdopt_opt_count_int }
 	}
 }
@@ -40,9 +53,11 @@
 {
 	\int_compare:nNnTF { #1 } > { 0 }
 	{
+		% Expect a default value in []
 		\__cmdopt_grab_default:w { #1 }
 	}
 	{
+		% Finished defaults, read body
 		\__cmdopt_read_body:w
 	}
 }
@@ -53,26 +68,70 @@
 	\__cmdopt_scan_defaults:n { \int_eval:n { #1 - 1 } }
 }
 
+% Read body: { ... }
 \NewDocumentCommand{ \__cmdopt_read_body:w } { +m }
 {
 	\__cmdopt_define_command:n { #1 }
 }
 
+% Helper token list for building definitions
+\tl_new:N \l__cmdopt_def_tl
+
 \cs_new_protected:Npn \__cmdopt_define_command:n #1
 {
 	\tl_clear:N \l__cmdopt_arg_spec_tl
+	\bool_set_false:N \l__cmdopt_has_star_bool
 	
+	% Check if command name contains * and extract base name
+	\tl_if_in:NnTF \l__cmdopt_cmd_name_tl { * }
+	{
+		\bool_set_true:N \l__cmdopt_has_star_bool
+		% Extract base name (everything except last character which is *)
+		\tl_set_eq:NN \l__cmdopt_base_name_tl \l__cmdopt_cmd_name_tl
+		\tl_remove_once:Nn \l__cmdopt_base_name_tl { * }
+	}
+	{
+		\tl_set_eq:NN \l__cmdopt_base_name_tl \l__cmdopt_cmd_name_tl
+	}
+	
+	% Append Optional specs O{default}
 	\seq_map_inline:Nn \l__cmdopt_defaults_seq
 	{
 		\tl_put_right:Nn \l__cmdopt_arg_spec_tl { O{ ##1 } }
 	}
 	
+	% Append Mandatory specs (with + prefix for paragraph breaks if starred)
 	\int_step_inline:nn { \l__cmdopt_mand_count_int }
 	{
-		\tl_put_right:Nn \l__cmdopt_arg_spec_tl { m }
+		\bool_if:NTF \l__cmdopt_has_star_bool
+		{
+			% Starred version: use +m to allow \par in arguments (equivalent to \long)
+			\tl_put_right:Nn \l__cmdopt_arg_spec_tl { +m }
+		}
+		{
+			% Non-starred: normal mandatory argument
+			\tl_put_right:Nn \l__cmdopt_arg_spec_tl { m }
+		}
 	}
 	
-	\use:x { \DeclareDocumentCommand \exp_not:V \l__cmdopt_cmd_name_tl { \l__cmdopt_arg_spec_tl } } { #1 }
+	% Define the command
+	\bool_if:NTF \l__cmdopt_has_star_bool
+	{
+		% Define starred version
+		\use:x 
+		{ 
+			\WithSuffix \DeclareDocumentCommand \exp_not:V \l__cmdopt_base_name_tl * 
+			{ \l__cmdopt_arg_spec_tl } 
+		} { #1 }
+	}
+	{
+		% Define normally without star
+		\use:x 
+		{ 
+			\DeclareDocumentCommand \exp_not:V \l__cmdopt_cmd_name_tl 
+			{ \l__cmdopt_arg_spec_tl } 
+		} { #1 }
+	}
 }
 
 \ExplSyntaxOff
